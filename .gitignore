@@ -1,0 +1,12 @@
+# Mengabaikan folder library/dependensi yang ukurannya raksasa
+node_modules/
+vendor/
+
+# MENCEGAH KEBOCORAN PASSWORD & KUNCI RAHASIA (SANGAT PENTING!)
+.env
+.env.*
+*.key
+
+# Mengabaikan file sistem operasi
+.DS_Store
+Thumbs.db
