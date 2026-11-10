@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_active',
+        'last_login',
     ];
 
     /**
@@ -41,4 +43,26 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // Relasi Many-to-Many ke tabel roles (via user_roles)
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+    }
+
+    // Relasi One-to-One ke profil spesifik
+    public function guru()
+    {
+        return $this->hasOne(Guru::class, 'user_id');
+    }
+
+    public function siswa()
+    {
+        return $this->hasOne(Siswa::class, 'user_id');
+    }
+
+    public function orangTua()
+    {
+        return $this->hasOne(OrangTua::class, 'user_id');
+    }
 }
