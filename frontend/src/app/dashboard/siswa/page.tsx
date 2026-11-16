@@ -100,6 +100,9 @@ export default function DataSiswaPage() {
                     <td className="px-6 py-4">{item.angkatan}</td>
                     <td className="px-6 py-4">Kamar {item.kamar_asrama_id || "-"}</td>
                     <td className="px-6 py-4 space-x-3">
+                      <Link href={`/dashboard/siswa/${item.id}/relasi`} className="font-medium text-emerald-600 hover:underline">
+                        Relasi
+                      </Link>
                       <Link href={`/dashboard/siswa/edit/${item.id}`} className="font-medium text-blue-600 hover:underline">
                         Edit
                       </Link>

@@ -15,7 +15,7 @@ class OrangTua extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function anak() // Relasi ke siswa
+    public function siswa()
     {
         return $this->belongsToMany(Siswa::class, 'orang_tua_siswa', 'orang_tua_id', 'siswa_id')
                     ->withPivot('status_hubungan');

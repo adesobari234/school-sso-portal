@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SiswaController;
 use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\OrangTuaController;
+use App\Http\Controllers\Api\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return $user;
     });
 
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+
     // ----------------------------------------------------
     // MODULE: DATA SISWA
     // ----------------------------------------------------
@@ -51,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/guru', [GuruController::class, 'store']);
         Route::put('/guru/{id}', [GuruController::class, 'update']);
         Route::delete('/guru/{id}', [GuruController::class, 'destroy']);
+        Route::post('/siswa/{id}/sync-orangtua', [SiswaController::class, 'syncOrangTua']);
         
     
         // Orang Tua CRUD (Full API - Hanya Admin)

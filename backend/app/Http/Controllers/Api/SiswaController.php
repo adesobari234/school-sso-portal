@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Siswa;
+use App\Models\OrangTua;
 use App\Models\User;
 use App\Models\Role;
 
@@ -73,7 +74,7 @@ class SiswaController extends Controller
     // 1. Ambil data spesifik untuk diisi ke dalam form Edit
     public function show($id)
     {
-        $siswa = Siswa::findOrFail($id);
+        $siswa = Siswa::with('orangTua')->findOrFail($id);
         return response()->json($siswa);
     }
 
@@ -132,5 +133,33 @@ class SiswaController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Gagal menghapus data', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    // Menambahkan/mengupdate relasi orang tua ke siswa
+    public function syncOrangTua(Request $request, $id)
+    {
+        // Validasi menerima array objek: [{orang_tua_id: 1, status_hubungan: 'Ayah'}, ...]
+        $request->validate([
+            'relasi' => 'required|array',
+            'relasi.*.orang_tua_id' => 'required|exists:orang_tua,id',
+            'relasi.*.status_hubungan' => 'required|in:Ayah,Ibu,Wali'
+        ]);
+
+        $siswa = \App\Models\Siswa::findOrFail($id);
+        
+        // Format ulang array untuk fungsi sync() Laravel
+        // Hasilnya harus seperti: [ 1 => ['status_hubungan' => 'Ayah'], 2 => ['status_hubungan' => 'Ibu'] ]
+        $syncData = [];
+        foreach ($request->relasi as $item) {
+            $syncData[$item['orang_tua_id']] = ['status_hubungan' => $item['status_hubungan']];
+        }
+
+        // Sinkronisasi data pivot
+        $siswa->orangTua()->sync($syncData);
+
+        return response()->json([
+            'message' => 'Relasi siswa dan orang tua berhasil diperbarui',
+            'data' => $siswa->load('orangTua') 
+        ]);
     }
 }

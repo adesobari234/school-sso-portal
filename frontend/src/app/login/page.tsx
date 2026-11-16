@@ -36,7 +36,7 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       // Arahkan ke halaman utama/dashboard setelah berhasil
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message);
     } finally {
