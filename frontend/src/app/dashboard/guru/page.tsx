@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 
 export default function DataGuruPage() {
   const [guru, setGuru] = useState<any[]>([]);
+  const [searchGuru, setSearchGuru] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -43,6 +47,17 @@ export default function DataGuruPage() {
     }
   };
 
+  const filteredGuru = guru.filter(
+    (u) =>
+      String(u.nama_lengkap || "").toLowerCase().includes(searchGuru.toLowerCase()) ||
+      String(u.nip || "").toLowerCase().includes(searchGuru.toLowerCase())
+  );
+
+  const paginatedGuru = filteredGuru.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -53,6 +68,20 @@ export default function DataGuruPage() {
       </div>
 
       {error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">{error}</div>}
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="font-semibold text-slate-800">Daftar Guru</h2>
+        <input
+          type="text"
+          placeholder="Cari nama atau NIP guru..."
+          value={searchGuru}
+          onChange={(e) => {
+            setSearchGuru(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+        />
+      </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
@@ -67,11 +96,25 @@ export default function DataGuruPage() {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {isLoading ? (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">Memuat data...</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    Memuat data...
+                  </td>
+                </tr>
               ) : guru.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">Belum ada data guru.</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    Belum ada data siswa.
+                  </td>
+                </tr>
+              ) : filteredGuru.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    Data siswa tidak ditemukan.
+                  </td>
+                </tr>
               ) : (
-                guru.map((item) => (
+                paginatedGuru.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4 font-medium text-slate-800">{item.nip}</td>
                     <td className="px-6 py-4">{item.nama_lengkap}</td>
@@ -86,6 +129,13 @@ export default function DataGuruPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredGuru.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
     </div>
   );

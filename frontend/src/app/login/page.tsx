@@ -33,10 +33,9 @@ export default function LoginPage() {
 
       // Simpan token dan data user ke localStorage (untuk sementara)
       localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Arahkan ke halaman utama/dashboard setelah berhasil
-      window.location.href = "/dashboard";
+      const params = new URLSearchParams(window.location.search);
+      const redirectTarget = params.get("redirect") || "/dashboard";
+      window.location.href = redirectTarget;
     } catch (err: any) {
       setError(err.message);
     } finally {

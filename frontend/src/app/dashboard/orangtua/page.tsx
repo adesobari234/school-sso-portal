@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 
 export default function DataGuruPage() {
   const [OrangTua, setOrangTua] = useState<any[]>([]);
+  const [searchOrangTua, setSearchOrangTua] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -43,6 +47,16 @@ export default function DataGuruPage() {
     }
   };
 
+  const filteredOrangTua = OrangTua.filter(
+    (u) =>
+      String(u.nama_lengkap || "").toLowerCase().includes(searchOrangTua.toLowerCase())
+  );
+
+  const paginatedOrangTua = filteredOrangTua.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -53,6 +67,20 @@ export default function DataGuruPage() {
       </div>
 
       {error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">{error}</div>}
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="font-semibold text-slate-800">Daftar Orang Tua</h2>
+        <input
+          type="text"
+          placeholder="Cari nama orang tua..."
+          value={searchOrangTua}
+          onChange={(e) => {
+            setSearchOrangTua(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+        />
+      </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
@@ -67,11 +95,25 @@ export default function DataGuruPage() {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {isLoading ? (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">Memuat data...</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    Memuat data...
+                  </td>
+                </tr>
               ) : OrangTua.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">Belum ada data orang tua.</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    Belum ada data siswa.
+                  </td>
+                </tr>
+              ) : filteredOrangTua.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    Data siswa tidak ditemukan.
+                  </td>
+                </tr>
               ) : (
-                OrangTua.map((item) => (
+                paginatedOrangTua.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4 font-medium text-slate-800">{item.nik}</td>
                     <td className="px-6 py-4">{item.nama_lengkap}</td>
@@ -86,6 +128,13 @@ export default function DataGuruPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredOrangTua.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
     </div>
   );

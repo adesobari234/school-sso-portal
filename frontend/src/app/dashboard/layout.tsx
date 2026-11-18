@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import AuthGuard from "@/components/AuthGuard";
 import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
 
 export default function DashboardLayout({
   children,
-}: {
-  children: React.ReactNode;
+  }: {
+    children: React.ReactNode;
 }) {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -17,10 +18,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    if (!token) return;
 
     const verifyUser = async () => {
       try {
@@ -55,6 +53,7 @@ export default function DashboardLayout({
   }
 
   return (
+    <AuthGuard>
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar roles={user?.roles || []} />
       <div className="flex flex-1 flex-col">
@@ -88,5 +87,6 @@ export default function DashboardLayout({
         
       </div>
     </div>
+    </AuthGuard>
   );
 }

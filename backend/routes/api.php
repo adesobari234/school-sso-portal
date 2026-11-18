@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\SiswaController;
 use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\OrangTuaController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\IndikatorMutabaahController;
+use App\Http\Controllers\Api\MutabaahController;
+use App\Http\Controllers\Api\SettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +35,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/indikator-mutabaah', [IndikatorMutabaahController::class, 'index']);
+    Route::get('/mutabaah/rekap/{siswaId}', [MutabaahController::class, 'rekapSiswa']);
+    Route::get('/settings', [SettingController::class, 'index']);
+    Route::post('/settings', [SettingController::class, 'updateSettings']);
+    Route::post('/settings/users/{id}/reset-password', [SettingController::class, 'resetUserPassword']);
 
     // ----------------------------------------------------
     // MODULE: DATA SISWA
@@ -40,10 +48,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:Admin,Guru')->group(function () {
         Route::get('/siswa', [SiswaController::class, 'index']);
         Route::get('/siswa/{id}', [SiswaController::class, 'show']);
+        Route::get('/mutabaah/santri-binaan', [MutabaahController::class, 'santriBinaan']);
+        Route::post('/mutabaah/harian', [MutabaahController::class, 'storeHarian']);
     });
 
     // Hak akses: KHUSUS Admin (Bisa modifikasi)
     Route::middleware('role:Admin')->group(function () {
+        // Siswa CRUD
         Route::post('/siswa', [SiswaController::class, 'store']);
         Route::put('/siswa/{id}', [SiswaController::class, 'update']);
         Route::delete('/siswa/{id}', [SiswaController::class, 'destroy']);
@@ -63,6 +74,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/orangtua', [OrangTuaController::class, 'store']);
         Route::put('/orangtua/{id}', [OrangTuaController::class, 'update']);
         Route::delete('orangtua/{id}', [OrangTuaController::class, 'destroy']);
+
+        // Master Indikator & Plotting Musyrif
+        Route::post('/indikator-mutabaah', [IndikatorMutabaahController::class, 'store']);
+        Route::put('/indikator-mutabaah/{id}', [IndikatorMutabaahController::class, 'update']);
+        Route::delete('/indikator-mutabaah/{id}', [IndikatorMutabaahController::class, 'destroy']);
+        Route::post('/mutabaah/assign-musyrif', [MutabaahController::class, 'assignMusyrif']);
     });
     
 });

@@ -70,6 +70,62 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* DAFTAR APLIKASI / SISTEM SSO */}
+      <div>
+        <h2 className="mb-3 text-base font-semibold text-slate-800">Daftar Sistem & Layanan</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {/* Kartu 1: Sistem Mutaba'ah (Aktif untuk semua role) */}
+          <Link
+            href="/mutabaah"
+            className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
+          >
+            <div className="flex items-center justify-between">
+              <span className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                Aktif
+              </span>
+              <span className="text-xs text-slate-400 group-hover:text-emerald-600">Buka Sistem &rarr;</span>
+            </div>
+            <h3 className="mt-3 text-lg font-bold text-slate-800 group-hover:text-emerald-700">
+              Sistem Mutaba&apos;ah Santri
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">
+              {isAdmin || isGuru
+                ? "Pencatatan ibadah & kedisiplinan harian, rekap bulanan, dan evaluasi rapor Wali Bina."
+                : "Pantau capaian ibadah harian, persentase pekanan (>90%), dan rekap semester."}
+            </p>
+          </Link>
+
+          {/* Kartu 2: Sistem Perizinan Pulang (Tahap Berikutnya) */}
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 opacity-80">
+            <div className="flex items-center justify-between">
+              <span className="rounded-lg bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                Tahap Berikutnya
+              </span>
+              <span className="text-xs text-slate-400">Syarat Mutaba&apos;ah &gt; 90%</span>
+            </div>
+            <h3 className="mt-3 text-lg font-bold text-slate-700">Sistem Perizinan Pulang</h3>
+            <p className="mt-1 text-xs text-slate-500">
+              Pengajuan & persetujuan izin pulang akhir pekan (Sabtu siang – Minggu sore) terintegrasi skor Mutaba&apos;ah.
+            </p>
+          </div>
+
+          {/* Kartu 3: Manajemen Asrama (Tahap Berikutnya) */}
+          {(isAdmin || isGuru) && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 opacity-80">
+              <div className="flex items-center justify-between">
+                <span className="rounded-lg bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+                  Segera Hadir
+                </span>
+              </div>
+              <h3 className="mt-3 text-lg font-bold text-slate-700">Manajemen Kamar Asrama</h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Pengelolaan kapasitas kamar asrama, penempatan santri, dan wali kamar.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* TAMPILAN 1: ADMIN */}
       {isAdmin && data?.stats && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">

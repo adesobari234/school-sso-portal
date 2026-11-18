@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrangTua extends Model
 {
+    use HasFactory;
     protected $table = 'orang_tua';
     protected $fillable = ['user_id', 'nik', 'nama_lengkap', 'no_hp_whatsapp'];
 
