@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\MutabaahHarian;
+use App\Models\Setting;
+use App\Models\KategoriMutabaah;
 use Carbon\Carbon;
 
 class MutabaahService
@@ -14,6 +16,7 @@ class MutabaahService
     public function hitungSkor($siswaId, $startDate, $endDate)
     {
         $records = MutabaahHarian::with('details.indikator')
+            ->periodeAktif()
             ->where('siswa_id', $siswaId)
             ->whereBetween('tanggal', [$startDate, $endDate])
             ->get();
@@ -24,12 +27,11 @@ class MutabaahService
         $hariIzinPulang = 0;
         $hariSakit = 0;
 
-        $kategoriBreakdown = [
-            'Ibadah' => ['earned' => 0, 'max' => 0, 'persentase' => 0],
-            'Kedisiplinan' => ['earned' => 0, 'max' => 0, 'persentase' => 0],
-            'Kebersihan' => ['earned' => 0, 'max' => 0, 'persentase' => 0],
-            'Akhlak' => ['earned' => 0, 'max' => 0, 'persentase' => 0],
-        ];
+        $kategoriNames = KategoriMutabaah::orderBy('urutan')->orderBy('id')->pluck('nama_kategori');
+        $kategoriBreakdown = [];
+        foreach ($kategoriNames as $namaKat) {
+            $kategoriBreakdown[$namaKat] = ['earned' => 0, 'max' => 0, 'persentase' => 0];
+        }
 
         foreach ($records as $record) {
             if ($record->status_kehadiran === 'izin_pulang') {
@@ -72,11 +74,14 @@ class MutabaahService
         }
 
         $persentase = $totalMax > 0 ? round(($totalEarned / $totalMax) * 100, 1) : 0;
+        $batasMinimal = (float) Setting::getValue('min_skor_izin', 90);
 
         return [
             'periode' => [
                 'mulai' => $startDate,
                 'selesai' => $endDate,
+                'tahun_ajaran' => Setting::getValue('tahun_ajaran', '2026/2027'),
+                'semester' => ucfirst(Setting::getValue('semester_aktif', 'ganjil')),
             ],
             'kehadiran' => [
                 'hadir' => $hariHadir,
@@ -87,7 +92,8 @@ class MutabaahService
                 'poin_diperoleh' => $totalEarned,
                 'poin_maksimal' => $totalMax,
                 'persentase' => $persentase,
-                'memenuhi_syarat_izin' => $persentase > 90, // Syarat mutlak > 90%
+                'batas_minimal_izin' => $batasMinimal,
+                'memenuhi_syarat_izin' => $persentase > $batasMinimal,
             ],
             'per_kategori' => $kategoriBreakdown,
         ];

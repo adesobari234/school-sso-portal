@@ -14,7 +14,6 @@ export default function PengaturanPortalPage() {
     nama_sekolah: "",
     tahun_ajaran: "",
     semester_aktif: "ganjil",
-    min_skor_izin: "90",
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -150,7 +149,7 @@ export default function PengaturanPortalPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Pengaturan Portal SSO</h1>
         <p className="text-sm text-slate-500">
-          Kelola identitas instansi, parameter akademik, dan reset kata sandi akun pengguna.
+          Kelola identitas instansi, periode tahun ajaran aktif, dan reset kata sandi akun pengguna.
         </p>
       </div>
 
@@ -162,7 +161,7 @@ export default function PengaturanPortalPage() {
           className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
             activeTab === "umum"
               ? "bg-blue-600 text-white"
-              : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
           Konfigurasi Portal &amp; Akademik
@@ -173,14 +172,14 @@ export default function PengaturanPortalPage() {
           className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
             activeTab === "akun"
               ? "bg-blue-600 text-white"
-              : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
           Manajemen Akun &amp; Reset Password
         </button>
       </div>
 
-      {/* TAB 1: KONFIGURASI UMUM */}
+      {/* TAB 1: KONFIGURASI PORTAL & PERIODE AKADEMIK */}
       {activeTab === "umum" && (
         <form
           onSubmit={handleSaveSettings}
@@ -195,8 +194,12 @@ export default function PengaturanPortalPage() {
               required
               value={settings.nama_sekolah}
               onChange={(e) => setSettings({ ...settings, nama_sekolah: e.target.value })}
-              className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm"
+              placeholder="Contoh: Sekolah & Pesantren Terpadu"
+              className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
+            <p className="mt-1 text-xs text-slate-400">
+              Digunakan sebagai Kop Surat pada cetakan rapor dan laporan resmi.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -207,10 +210,10 @@ export default function PengaturanPortalPage() {
               <input
                 type="text"
                 required
-                placeholder="Contoh: 2026/2027"
                 value={settings.tahun_ajaran}
                 onChange={(e) => setSettings({ ...settings, tahun_ajaran: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm"
+                placeholder="2026/2027"
+                className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -221,37 +224,23 @@ export default function PengaturanPortalPage() {
               <select
                 value={settings.semester_aktif}
                 onChange={(e) => setSettings({ ...settings, semester_aktif: e.target.value })}
-                className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm focus:border-blue-500 focus:outline-none"
               >
-                <option value="ganjil">Semester Ganjil (Jul – Des)</option>
-                <option value="genap">Semester Genap (Jan – Jun)</option>
+                <option value="ganjil">Ganjil</option>
+                <option value="genap">Genap</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Ambang Batas Minimal Skor Mutaba&apos;ah Izin Pulang (%)
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              required
-              value={settings.min_skor_izin}
-              onChange={(e) => setSettings({ ...settings, min_skor_izin: e.target.value })}
-              className="w-36 rounded-lg border border-slate-300 px-3.5 py-2 text-sm"
-            />
-            <p className="mt-1 text-xs text-slate-400">
-              Default: 90%. Santri harus melampaui nilai ini pada pekan berjalan untuk mengajukan izin pulang akhir pekan.
-            </p>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-800">
+            <strong>Perhatian:</strong> Mengubah Tahun Ajaran atau Semester aktif akan otomatis memfilter data operasional yang tampil di seluruh aplikasi (Mutaba&apos;ah, Kamar Asrama, dan Perizinan).
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <button
               type="submit"
               disabled={isSavingSettings}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+              className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
               {isSavingSettings ? "Menyimpan..." : "Simpan Pengaturan"}
             </button>
@@ -334,12 +323,12 @@ export default function PengaturanPortalPage() {
                 </table>
               </div>
               <Pagination
-                  currentPage={currentPage}
-                  totalItems={filteredUsers.length}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={setCurrentPage}
-                  onItemsPerPageChange={setItemsPerPage}
-                />
+                currentPage={currentPage}
+                totalItems={filteredUsers.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+              />
             </div>
           </div>
 

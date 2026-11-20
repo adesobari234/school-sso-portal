@@ -24,7 +24,7 @@ class IndikatorMutabaahController extends Controller
     {
         $validated = $request->validate([
             'nama_indikator' => 'required|string|max:255',
-            'kategori' => 'required|in:Ibadah,Kedisiplinan,Kebersihan,Akhlak',
+            'kategori' => 'required|string|exists:kategori_mutabaahs,nama_kategori',
             'bobot_nilai' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean',
         ]);
@@ -43,7 +43,7 @@ class IndikatorMutabaahController extends Controller
 
         $validated = $request->validate([
             'nama_indikator' => 'required|string|max:255',
-            'kategori' => 'required|in:Ibadah,Kedisiplinan,Kebersihan,Akhlak',
+            'kategori' => 'required|string|exists:kategori_mutabaahs,nama_kategori',
             'bobot_nilai' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean',
         ]);

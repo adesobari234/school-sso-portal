@@ -22,6 +22,10 @@ class DashboardController extends Controller
                 'email' => $user->email,
                 'roles' => $roles,
             ],
+            'periode_aktif' => [
+                'tahun_ajaran' => \App\Models\Setting::getValue('tahun_ajaran', '2026/2027'),
+                'semester' => ucfirst(\App\Models\Setting::getValue('semester_aktif', 'ganjil')),
+            ],
         ];
 
         // 1. Data khusus Admin
@@ -36,6 +40,9 @@ class DashboardController extends Controller
         // 2. Data khusus Guru
         if (in_array('Guru', $roles)) {
             $response['guru'] = $user->guru;
+            $response['is_musyrif'] = $user->guru
+                ? ((bool) $user->guru->is_musyrif || Siswa::where('musyrif_id', $user->guru->id)->exists())
+                : false;
             $response['stats'] = [
                 'total_siswa' => Siswa::count(),
             ];

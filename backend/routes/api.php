@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\IndikatorMutabaahController;
 use App\Http\Controllers\Api\MutabaahController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\KategoriMutabaahController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/settings', [SettingController::class, 'index']);
     Route::post('/settings', [SettingController::class, 'updateSettings']);
     Route::post('/settings/users/{id}/reset-password', [SettingController::class, 'resetUserPassword']);
+    Route::get('/mutabaah/settings', [MutabaahController::class, 'getSettings']);
+    Route::post('/mutabaah/settings', [MutabaahController::class, 'updateSettings']);
+
+    Route::get('/kategori-mutabaah', [KategoriMutabaahController::class, 'index']);
+    Route::post('/kategori-mutabaah', [KategoriMutabaahController::class, 'store']);
+    Route::put('/kategori-mutabaah/{id}', [KategoriMutabaahController::class, 'update']);
+    Route::delete('/kategori-mutabaah/{id}', [KategoriMutabaahController::class, 'destroy']);
 
     // ----------------------------------------------------
     // MODULE: DATA SISWA

@@ -24,7 +24,8 @@ class GuruController extends Controller
             'password' => 'required|min:6',
             'nip' => 'required|unique:guru,nip',
             'nama_lengkap' => 'required|string|max:150',
-            'no_hp' => 'nullable|string|max:20'
+            'no_hp' => 'nullable|string|max:20',
+            'is_musyrif' => 'nullable|boolean'
         ]);
 
         DB::beginTransaction();
@@ -65,7 +66,8 @@ class GuruController extends Controller
         $request->validate([
             'nip' => 'required|unique:guru,nip,'.$guru->id,
             'nama_lengkap' => 'required|string|max:150',
-            'no_hp' => 'nullable|string|max:20'
+            'no_hp' => 'nullable|string|max:20',
+            'is_musyrif' => 'nullable|boolean'
         ]);
 
         DB::beginTransaction();

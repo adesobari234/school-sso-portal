@@ -3,13 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\FilterPeriodeAkademik;
 use Illuminate\Database\Eloquent\Model;
 
 class MutabaahHarian extends Model
 {
     use HasFactory;
+    use FilterPeriodeAkademik;
+
     protected $table = 'mutabaah_harian';
-    protected $fillable = ['siswa_id', 'musyrif_id', 'tanggal', 'status_kehadiran', 'catatan'];
+    protected $fillable = ['siswa_id', 'musyrif_id', 'tanggal', 'tahun_ajaran', 'semester', 'status_kehadiran', 'catatan'];
 
     public function siswa()
     {

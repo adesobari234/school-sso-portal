@@ -43,6 +43,10 @@ export default function DashboardPage() {
   const isGuru = roles.includes("Guru");
   const isSiswa = roles.includes("Siswa");
   const isOrangTua = roles.includes("Orang Tua");
+  const isMusyrif = Boolean(data?.is_musyrif);
+
+  // Syarat akses aplikasi Mutaba'ah:
+  const canAccessMutabaah = isAdmin || isSiswa || isOrangTua || (isGuru && isMusyrif);
 
   return (
     <div className="space-y-6">
@@ -68,6 +72,11 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+        {data?.periode_aktif && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+            TA {data.periode_aktif.tahun_ajaran} &bull; Semester {data.periode_aktif.semester}
+          </span>
+        )}
       </div>
 
       {/* DAFTAR APLIKASI / SISTEM SSO */}
@@ -75,25 +84,27 @@ export default function DashboardPage() {
         <h2 className="mb-3 text-base font-semibold text-slate-800">Daftar Sistem & Layanan</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Kartu 1: Sistem Mutaba'ah (Aktif untuk semua role) */}
-          <Link
-            href="/mutabaah"
-            className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
-          >
-            <div className="flex items-center justify-between">
-              <span className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                Aktif
-              </span>
-              <span className="text-xs text-slate-400 group-hover:text-emerald-600">Buka Sistem &rarr;</span>
-            </div>
-            <h3 className="mt-3 text-lg font-bold text-slate-800 group-hover:text-emerald-700">
-              Sistem Mutaba&apos;ah Santri
-            </h3>
-            <p className="mt-1 text-xs text-slate-500">
-              {isAdmin || isGuru
-                ? "Pencatatan ibadah & kedisiplinan harian, rekap bulanan, dan evaluasi rapor Wali Bina."
-                : "Pantau capaian ibadah harian, persentase pekanan (>90%), dan rekap semester."}
-            </p>
-          </Link>
+          {canAccessMutabaah && (
+            <Link
+              href="/mutabaah"
+              className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
+            >
+              <div className="flex items-center justify-between">
+                <span className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  Aktif
+                </span>
+                <span className="text-xs text-slate-400 group-hover:text-emerald-600">Buka Sistem &rarr;</span>
+              </div>
+              <h3 className="mt-3 text-lg font-bold text-slate-800 group-hover:text-emerald-700">
+                Sistem Mutaba&apos;ah Santri
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                {isAdmin || isGuru
+                  ? "Pencatatan ibadah & kedisiplinan harian, rekap bulanan, dan evaluasi rapor Wali Bina."
+                  : "Pantau capaian ibadah harian, persentase pekanan (>90%), dan rekap semester."}
+              </p>
+            </Link>
+          )}
 
           {/* Kartu 2: Sistem Perizinan Pulang (Tahap Berikutnya) */}
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 opacity-80">

@@ -26,7 +26,6 @@ class SettingController extends Controller
             'nama_sekolah' => Setting::getValue('nama_sekolah', 'Sekolah & Pesantren Terpadu'),
             'tahun_ajaran' => Setting::getValue('tahun_ajaran', '2026/2027'),
             'semester_aktif' => Setting::getValue('semester_aktif', 'ganjil'),
-            'min_skor_izin' => Setting::getValue('min_skor_izin', '90'),
         ];
 
         $users = User::with('roles:id,nama_role')
@@ -49,15 +48,19 @@ class SettingController extends Controller
             'nama_sekolah' => 'required|string|max:255',
             'tahun_ajaran' => 'required|string|max:20',
             'semester_aktif' => 'required|in:ganjil,genap',
-            'min_skor_izin' => 'required|numeric|min:0|max:100',
         ]);
 
         foreach ($validated as $key => $value) {
-            Setting::setValue($key, (string) $value);
+            if ($value !== null) {
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $value]
+                );
+            }
         }
 
         return response()->json([
-            'message' => 'Pengaturan sistem berhasil diperbarui.',
+            'message' => 'Pengaturan umum & periode akademik berhasil diperbarui.',
             'settings' => $validated,
         ]);
     }

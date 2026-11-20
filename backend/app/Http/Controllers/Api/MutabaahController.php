@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\MutabaahDetail;
 use App\Models\MutabaahHarian;
 use App\Models\Siswa;
+use App\Models\Guru;
+use App\Models\Setting;
 use App\Services\MutabaahService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -34,6 +36,7 @@ class MutabaahController extends Controller
         Siswa::whereIn('id', $request->siswa_ids)->update([
             'musyrif_id' => $request->musyrif_id,
         ]);
+        Guru::where('id', $request->musyrif_id)->update(['is_musyrif' => true]);
 
         return response()->json([
             'message' => 'Penugasan musyrif berhasil diperbarui',
@@ -49,6 +52,14 @@ class MutabaahController extends Controller
         $user = $request->user();
         $roles = $user->roles->pluck('nama_role')->toArray();
         $tanggal = $request->query('tanggal', Carbon::today()->toDateString());
+
+        if (in_array('Guru', $roles) && !in_array('Admin', $roles)) {
+            $guru = $user->guru;
+            $isMusyrif = $guru && ($guru->is_musyrif || \App\Models\Siswa::where('musyrif_id', $guru->id)->exists());
+            if (!$isMusyrif) {
+                return response()->json(['message' => 'Akses ditolak. Anda tidak terdaftar sebagai Musyrif.'], 403);
+            }
+        }
 
         if (in_array('Admin', $roles)) {
             $santriList = Siswa::with('musyrif')->orderBy('nama_lengkap')->get();
@@ -105,6 +116,7 @@ class MutabaahController extends Controller
 
         $result = $santriList->map(function ($siswa) use ($tanggal, $expectedDates, $existingMap) {
             $catatanHariIni = MutabaahHarian::with('details')
+                ->periodeAktif()
                 ->where('siswa_id', $siswa->id)
                 ->where('tanggal', $tanggal)
                 ->first();
@@ -177,6 +189,8 @@ class MutabaahController extends Controller
                 ],
                 [
                     'musyrif_id' => $musyrifId,
+                    'tahun_ajaran' => Setting::getValue('tahun_ajaran', '2026/2027'),
+                    'semester' => Setting::getValue('semester_aktif', 'ganjil'),
                     'status_kehadiran' => $request->status_kehadiran,
                     'catatan' => $request->catatan,
                 ]
@@ -218,6 +232,14 @@ class MutabaahController extends Controller
         $user = $request->user();
         $roles = $user->roles->pluck('nama_role')->toArray();
         $siswa = Siswa::with('musyrif')->findOrFail($siswaId);
+
+        if (in_array('Guru', $roles) && !in_array('Admin', $roles)) {
+            $guru = $user->guru;
+            $isMusyrif = $guru && ($guru->is_musyrif || \App\Models\Siswa::where('musyrif_id', $guru->id)->exists());
+            if (!$isMusyrif) {
+                return response()->json(['message' => 'Akses ditolak. Anda tidak terdaftar sebagai Musyrif.'], 403);
+            }
+        }
 
         // Validasi hak akses kepemilikan data
         $bolehAkses = false;
@@ -262,6 +284,7 @@ class MutabaahController extends Controller
 
         // Sertakan riwayat harian pada rentang tersebut
         $riwayat = MutabaahHarian::with('details.indikator')
+            ->periodeAktif()
             ->where('siswa_id', $siswa->id)
             ->whereBetween('tanggal', [$startDate, $endDate])
             ->orderBy('tanggal', 'desc')
@@ -278,6 +301,37 @@ class MutabaahController extends Controller
             'tipe_periode' => $periode,
             'evaluasi' => $evaluasi,
             'riwayat' => $riwayat,
+        ]);
+    }
+
+    public function getSettings(Request $request)
+    {
+        $roles = $request->user()->roles->pluck('nama_role')->toArray();
+        if (!in_array('Admin', $roles)) {
+            return response()->json(['message' => 'Hanya Admin yang dapat mengakses pengaturan ini.'], 403);
+        }
+
+        return response()->json([
+            'min_skor_izin' => Setting::getValue('min_skor_izin', '90'),
+        ]);
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $roles = $request->user()->roles->pluck('nama_role')->toArray();
+        if (!in_array('Admin', $roles)) {
+            return response()->json(['message' => 'Akses ditolak.'], 403);
+        }
+
+        $validated = $request->validate([
+            'min_skor_izin' => 'required|numeric|min:0|max:100',
+        ]);
+
+        Setting::setValue('min_skor_izin', (string) $validated['min_skor_izin']);
+
+        return response()->json([
+            'message' => 'Pengaturan Mutaba\'ah berhasil disimpan.',
+            'min_skor_izin' => $validated['min_skor_izin'],
         ]);
     }
 }
