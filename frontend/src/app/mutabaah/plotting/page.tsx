@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function PlottingMusyrifPage() {
+  const { toast } = useNotification();
   const [guruList, setGuruList] = useState<any[]>([]);
   const [santriList, setSantriList] = useState<any[]>([]);
   const [selectedMusyrifId, setSelectedMusyrifId] = useState<string>("");
@@ -34,6 +36,7 @@ export default function PlottingMusyrifPage() {
       }
     } catch (err) {
       console.error("Gagal memuat data plotting:", err);
+      toast.error("Gagal memuat data santri & musyrif.");
     } finally {
       setIsLoading(false);
     }
@@ -54,11 +57,11 @@ export default function PlottingMusyrifPage() {
   const handleSimpan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMusyrifId) {
-      alert("Pilih Musyrif terlebih dahulu.");
+      toast.info("Pilih Musyrif terlebih dahulu.", "Perhatian");
       return;
     }
     if (selectedSiswaIds.length === 0) {
-      alert("Centang minimal satu santri yang akan dipasangkan.");
+      toast.info("Centang minimal satu santri yang akan dipasangkan.", "Perhatian");
       return;
     }
 
@@ -78,13 +81,14 @@ export default function PlottingMusyrifPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Gagal menyimpan penugasan musyrif");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal menyimpan penugasan musyrif.");
 
-      alert("Penugasan Musyrif berhasil diperbarui!");
+      toast.success(data.message || "Penugasan Musyrif berhasil diperbarui!");
       setSelectedSiswaIds([]);
       fetchData(); // Muat ulang daftar agar nama musyrif terbaru langsung terlihat
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan penugasan.");
     } finally {
       setIsSaving(false);
     }

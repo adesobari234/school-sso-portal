@@ -334,4 +334,111 @@ class MutabaahController extends Controller
             'min_skor_izin' => $validated['min_skor_izin'],
         ]);
     }
+
+    public function raporSantri(Request $request, $siswaId)
+    {
+        $user = $request->user();
+        $roles = $user->roles->pluck('nama_role')->toArray();
+
+        $siswa = \App\Models\Siswa::with(['musyrif', 'kelas'])->findOrFail($siswaId);
+
+        // Proteksi akses: Admin bebas, Musyrif hanya santri binaannya
+        if (!in_array('Admin', $roles)) {
+            if (in_array('Guru', $roles)) {
+                $guru = \App\Models\Guru::where('user_id', $user->id)->first();
+                if (!$guru || $siswa->musyrif_id !== $guru->id) {
+                    return response()->json(['message' => 'Anda tidak memiliki akses ke rapor santri ini.'], 403);
+                }
+            }
+        }
+
+        $bulan = $request->query('bulan'); // Format opsional: YYYY-MM
+        $query = \App\Models\MutabaahHarian::with(['details.indikator'])
+            ->where('siswa_id', $siswa->id)
+            ->periodeAktif();
+
+        if (!empty($bulan)) {
+            $query->where('tanggal', 'like', $bulan . '%');
+        }
+
+        $riwayat = $query->orderBy('tanggal', 'asc')->get();
+        $totalHari = $riwayat->count();
+
+        // Ambil kategori dinamis sesuai urutan kurikulum
+        $kategoriList = \App\Models\KategoriMutabaah::orderBy('urutan')->get();
+        $indikatorAktif = \App\Models\IndikatorMutabaah::where('is_active', true)->get();
+
+        $rincianKategori = [];
+        $totalSkorHarian = 0;
+
+        foreach ($riwayat as $harian) {
+            $totalSkorHarian += (float) $harian->total_skor;
+        }
+
+        foreach ($kategoriList as $kat) {
+            $indikatorKategori = $indikatorAktif->where('kategori', $kat->nama_kategori);
+            $maxPoinPerHari = $indikatorKategori->sum('bobot_nilai');
+            $totalMaxPoin = $maxPoinPerHari * max($totalHari, 1);
+
+            $poinTercapai = 0;
+            foreach ($riwayat as $harian) {
+                foreach ($harian->details as $detail) {
+                    if (
+                        $detail->status &&
+                        $detail->indikator &&
+                        $detail->indikator->kategori === $kat->nama_kategori
+                    ) {
+                        $poinTercapai += (int) $detail->indikator->bobot_nilai;
+                    }
+                }
+            }
+
+            $persentase = ($totalHari > 0 && $totalMaxPoin > 0)
+                ? round(($poinTercapai / $totalMaxPoin) * 100, 1)
+                : 0;
+
+            $rincianKategori[] = [
+                'kategori' => $kat->nama_kategori,
+                'poin_tercapai' => $poinTercapai,
+                'poin_maksimal' => $totalHari > 0 ? $totalMaxPoin : 0,
+                'nilai_akhir' => $persentase,
+                'predikat' => $this->tentukanPredikat($persentase, $totalHari),
+            ];
+        }
+
+        $rataRata = $totalHari > 0 ? round($totalSkorHarian / $totalHari, 1) : 0;
+
+        return response()->json([
+            'sekolah' => [
+                'nama_sekolah' => \App\Models\Setting::getValue('nama_sekolah', 'Sekolah & Pesantren Terpadu'),
+            ],
+            'periode' => [
+                'tahun_ajaran' => \App\Models\Setting::getValue('tahun_ajaran', '2026/2027'),
+                'semester' => ucfirst(\App\Models\Setting::getValue('semester_aktif', 'ganjil')),
+                'filter_bulan' => $bulan ?: 'Semua Bulan (Semester Aktif)',
+            ],
+            'siswa' => [
+                'id' => $siswa->id,
+                'nisn' => $siswa->nisn,
+                'nama_lengkap' => $siswa->nama_lengkap,
+                'kelas' => $siswa->kelas->nama_kelas ?? '-',
+                'nama_musyrif' => $siswa->musyrif->nama_lengkap ?? 'Belum Ditentukan',
+            ],
+            'ringkasan' => [
+                'total_hari_terisi' => $totalHari,
+                'rata_rata_skor' => $rataRata,
+                'predikat_akhir' => $this->tentukanPredikat($rataRata, $totalHari),
+            ],
+            'rincian_kategori' => $rincianKategori,
+        ]);
+    }
+
+    private function tentukanPredikat(float $nilai, int $totalHari): string
+    {
+        if ($totalHari === 0) return '-';
+        if ($nilai >= 90) return 'Mumtaz (Sangat Baik)';
+        if ($nilai >= 80) return 'Jayyid Jiddan (Baik)';
+        if ($nilai >= 70) return 'Jayyid (Cukup)';
+        return 'Perlu Pembinaan';
+    }
 }

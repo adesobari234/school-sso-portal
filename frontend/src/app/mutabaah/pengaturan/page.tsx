@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function PengaturanMutabaahPage() {
+  const { toast } = useNotification();
   const [minSkorIzin, setMinSkorIzin] = useState("90");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -58,9 +60,9 @@ export default function PengaturanMutabaahPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal menyimpan pengaturan");
 
-      alert(data.message);
+      toast.success(data.message || "Pengaturan berhasil disimpan.");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan pengaturan.");
     } finally {
       setIsSaving(false);
     }

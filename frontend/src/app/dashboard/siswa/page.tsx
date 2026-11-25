@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function DataSiswaPage() {
+  const { toast, confirm } = useNotification();
   const [siswa, setSiswa] = useState<any[]>([]);
   const [searchSiswa, setSearchSiswa] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,7 +40,14 @@ export default function DataSiswaPage() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Yakin ingin menghapus data siswa ini beserta akun loginnya?")) return;
+    const isConfirmed = await confirm({
+      title: "Hapus Data Siswa?",
+      message: "Yakin ingin menghapus data siswa ini beserta akun loginnya? Data yang dihapus tidak dapat dikembalikan.",
+      confirmText: "Ya, Hapus",
+      variant: "danger",
+    });
+
+    if (!isConfirmed) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -47,11 +56,12 @@ export default function DataSiswaPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error("Gagal menghapus data");
+      if (!response.ok) throw new Error("Gagal menghapus data siswa");
 
       setSiswa(siswa.filter((item) => item.id !== id));
+      toast.success("Data siswa beserta akun loginnya berhasil dihapus.");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menghapus data.");
     }
   };
 

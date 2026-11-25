@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function EditSiswaPage() {
   const router = useRouter();
+  const { toast } = useNotification();
   const params = useParams(); // Mengambil ID dari URL
   const id = params.id;
 
@@ -67,14 +69,16 @@ export default function EditSiswaPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || "Gagal memperbarui siswa");
       }
 
+      toast.success(data.message || "Data siswa berhasil diperbaharui.");
       router.push("/dashboard/siswa");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsLoading(false);
     }

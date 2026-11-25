@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import RekapMutabaahView from "@/components/mutabaah/RekapMutabaahView";
 import Pagination from "@/components/Pagination";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function SistemMutabaahPage() {
   const [userData, setUserData] = useState<any>(null);
+  const { toast } = useNotification();
   const [isLoading, setIsLoading] = useState(true);
 
   // State untuk Siswa / Orang Tua
@@ -135,16 +137,17 @@ export default function SistemMutabaahPage() {
         }),
       });
 
+      const err = await res.json();
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.message || "Gagal menyimpan mutaba'ah");
       }
 
-      alert(`Mutaba'ah ${selectedSantri.nama_lengkap} tanggal ${tanggal} tersimpan!`);
+      toast.success(err.message || `Mutaba'ah ${selectedSantri.nama_lengkap} tanggal ${tanggal} tersimpan!`);
       setSelectedSantri(null);
       fetchSantriBinaan(tanggal);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan mutaba'ah.");
     } finally {
       setIsSavingHarian(false);
     }

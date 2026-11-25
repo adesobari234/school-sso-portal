@@ -9,17 +9,22 @@ class Siswa extends Model
 {
     use HasFactory;
     protected $table = 'siswa';
-    protected $fillable = ['user_id', 'nisn', 'nama_lengkap', 'angkatan', 'kamar_asrama_id', 'musyrif_id'];
+    protected $fillable = ['kelas_id', 'user_id', 'nisn', 'nama_lengkap', 'angkatan', 'kamar_asrama_id', 'musyrif_id'];
 
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_id');
+    }
+
     public function orangTua()
     {
         return $this->belongsToMany(OrangTua::class, 'orang_tua_siswa', 'siswa_id', 'orang_tua_id')
-                    ->withPivot('status_hubungan');
+            ->withPivot('status_hubungan');
     }
 
     public function musyrif()

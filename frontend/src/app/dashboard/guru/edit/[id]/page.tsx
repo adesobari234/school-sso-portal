@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function EditGuruPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id;
-
+  const { toast } = useNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState("");
@@ -64,14 +65,16 @@ export default function EditGuruPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || "Gagal memperbarui guru");
       }
 
+      toast.success(data.message || "Data guru berhasil diperbaharui.");
       router.push("/dashboard/guru");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsLoading(false);
     }

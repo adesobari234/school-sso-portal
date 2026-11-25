@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function TambahSiswaPage() {
   const router = useRouter();
+  const { toast } = useNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   
@@ -47,9 +49,11 @@ export default function TambahSiswaPage() {
       }
 
       // Kembali ke halaman tabel jika sukses
+      toast.success(data.message || "Data siswa berhasil ditambahkan.");
       router.push("/dashboard/siswa");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsLoading(false);
     }

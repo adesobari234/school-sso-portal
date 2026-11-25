@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function EditOrangTuaPage() {
   const router = useRouter();
+  const { toast } = useNotification();
   const params = useParams();
   const id = params.id;
 
@@ -64,14 +66,16 @@ export default function EditOrangTuaPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || "Gagal memperbarui data");
       }
 
+      toast.success(data.message || "Data orang tua berhasil diperbaharui.");
       router.push("/dashboard/orangtua");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsLoading(false);
     }

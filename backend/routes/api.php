@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SiswaController;
+use App\Http\Controllers\Api\KelasController;
 use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\OrangTuaController;
 use App\Http\Controllers\Api\DashboardController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Api\IndikatorMutabaahController;
 use App\Http\Controllers\Api\MutabaahController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\KategoriMutabaahController;
+use App\Http\Controllers\Api\BackupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,18 +38,30 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/indikator-mutabaah', [IndikatorMutabaahController::class, 'index']);
-    Route::get('/mutabaah/rekap/{siswaId}', [MutabaahController::class, 'rekapSiswa']);
     Route::get('/settings', [SettingController::class, 'index']);
     Route::post('/settings', [SettingController::class, 'updateSettings']);
     Route::post('/settings/users/{id}/reset-password', [SettingController::class, 'resetUserPassword']);
+
+    Route::get('/kelas', [KelasController::class, 'index']);
+    Route::post('/kelas', [KelasController::class, 'store']);
+    Route::put('/kelas/{id}', [KelasController::class, 'update']);
+    Route::delete('/kelas/{id}', [KelasController::class, 'destroy']);
+    Route::post('/kelas/{id}/assign-siswa', [KelasController::class, 'assignSiswa']);
+    
     Route::get('/mutabaah/settings', [MutabaahController::class, 'getSettings']);
     Route::post('/mutabaah/settings', [MutabaahController::class, 'updateSettings']);
-
+    Route::get('/indikator-mutabaah', [IndikatorMutabaahController::class, 'index']);
+    Route::get('/mutabaah/rekap/{siswaId}', [MutabaahController::class, 'rekapSiswa']);
     Route::get('/kategori-mutabaah', [KategoriMutabaahController::class, 'index']);
     Route::post('/kategori-mutabaah', [KategoriMutabaahController::class, 'store']);
     Route::put('/kategori-mutabaah/{id}', [KategoriMutabaahController::class, 'update']);
     Route::delete('/kategori-mutabaah/{id}', [KategoriMutabaahController::class, 'destroy']);
+    Route::get('/mutabaah/rapor/{siswaId}', [MutabaahController::class, 'raporSantri']);
+
+    Route::get('/backups', [BackupController::class, 'index']);
+    Route::post('/backups', [BackupController::class, 'store']);
+    Route::get('/backups/{filename}/download', [BackupController::class, 'download']);
+    Route::delete('/backups/{filename}', [BackupController::class, 'destroy']);
 
     // ----------------------------------------------------
     // MODULE: DATA SISWA

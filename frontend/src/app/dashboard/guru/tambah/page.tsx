@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function TambahGuruPage() {
   const router = useRouter();
+  const { toast } = useNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   
@@ -41,9 +43,11 @@ export default function TambahGuruPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Gagal menambahkan guru");
 
+      toast.success(data.message || "Data guru berhasil ditambahkan.");
       router.push("/dashboard/guru");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsLoading(false);
     }

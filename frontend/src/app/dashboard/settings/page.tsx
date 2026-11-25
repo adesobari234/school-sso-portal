@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
+import { useNotification } from "@/components/NotificationProvider";
+import BackupDatabaseTab from "@/components/settings/BackupDatabaseTab";
 
 export default function PengaturanPortalPage() {
-  const [activeTab, setActiveTab] = useState<"umum" | "akun">("umum");
+  const { toast } = useNotification();
+  const [activeTab, setActiveTab] = useState<"umum" | "akun" | "backup">("umum");
   const [isLoading, setIsLoading] = useState(true);
   const [isForbidden, setIsForbidden] = useState(false);
 
@@ -76,9 +79,9 @@ export default function PengaturanPortalPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal menyimpan pengaturan");
 
-      alert(data.message);
+      toast.success(data.message || "Pengaturan berhasil disimpan.");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan pengaturan.");
     } finally {
       setIsSavingSettings(false);
     }
@@ -107,11 +110,11 @@ export default function PengaturanPortalPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal mereset password");
 
-      alert(data.message);
+      toast.success(data.message || "Password berhasil direset.");
       setResetTarget(null);
       setNewPassword("");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat mereset password.");
     } finally {
       setIsResetting(false);
     }
@@ -158,24 +161,32 @@ export default function PengaturanPortalPage() {
         <button
           type="button"
           onClick={() => setActiveTab("umum")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-            activeTab === "umum"
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === "umum"
               ? "bg-blue-600 text-white"
               : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-          }`}
+            }`}
         >
           Konfigurasi Portal &amp; Akademik
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("akun")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-            activeTab === "akun"
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === "akun"
               ? "bg-blue-600 text-white"
               : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-          }`}
+            }`}
         >
           Manajemen Akun &amp; Reset Password
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("backup")}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === "backup"
+              ? "bg-blue-600 text-white"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+        >
+          Backup Database
         </button>
       </div>
 
@@ -382,6 +393,7 @@ export default function PengaturanPortalPage() {
           </div>
         </div>
       )}
+      {activeTab === "backup" && <BackupDatabaseTab />}
     </div>
   );
 }

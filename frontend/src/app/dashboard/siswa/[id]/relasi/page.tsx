@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function KelolaRelasiPage() {
   const router = useRouter();
+  const { toast } = useNotification();
   const params = useParams();
   const id = params.id;
 
@@ -93,15 +95,16 @@ export default function KelolaRelasiPage() {
         body: JSON.stringify({ relasi: validRelasi }),
       });
 
+      const errData = await response.json();
       if (!response.ok) {
-        const errData = await response.json();
         throw new Error(errData.message || "Gagal menyimpan relasi");
       }
 
-      alert("Relasi berhasil disimpan!");
+      toast.success(errData.message || "Relasi berhasil disimpan.");
       router.push("/dashboard/siswa");
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsSaving(false);
     }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function MasterIndikatorPage() {
   const [activeTab, setActiveTab] = useState<"indikator" | "kategori">("indikator");
+  const { toast, confirm } = useNotification();
   const [indikatorList, setIndikatorList] = useState<any[]>([]);
   const [kategoriList, setKategoriList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,43 +62,65 @@ export default function MasterIndikatorPage() {
 
   const handleSimpanIndikator = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    const url = editIndikatorId
-      ? `${process.env.NEXT_PUBLIC_API_URL}/indikator-mutabaah/${editIndikatorId}`
-      : `${process.env.NEXT_PUBLIC_API_URL}/indikator-mutabaah`;
+    try {
+      const token = localStorage.getItem("token");
+      const url = editIndikatorId
+        ? `${process.env.NEXT_PUBLIC_API_URL}/indikator-mutabaah/${editIndikatorId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/indikator-mutabaah`;
 
-    const res = await fetch(url, {
-      method: editIndikatorId ? "PUT" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        nama_indikator: namaIndikator,
-        kategori,
-        bobot_nilai: Number(bobotNilai),
-        is_active: isActive,
-      }),
-    });
+      const res = await fetch(url, {
+        method: editIndikatorId ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          nama_indikator: namaIndikator,
+          kategori,
+          bobot_nilai: Number(bobotNilai),
+          is_active: isActive,
+        }),
+      });
 
-    if (res.ok) {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal menyimpan indikator.");
+
+      toast.success(
+        data.message || (editIndikatorId ? "Indikator berhasil diperbarui." : "Indikator berhasil ditambahkan.")
+      );
       resetFormIndikator();
       fetchAll();
-    } else {
-      const err = await res.json();
-      alert(err.message || "Gagal menyimpan indikator");
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan indikator.");
     }
   };
 
   const handleDeleteIndikator = async (id: number) => {
-    if (!confirm("Hapus indikator ini?")) return;
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indikator-mutabaah/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+    const isConfirmed = await confirm({
+      title: "Hapus Indikator?",
+      message: "Yakin ingin menghapus indikator ini?",
+      confirmText: "Ya, Hapus",
+      variant: "danger",
     });
-    if (res.ok) fetchAll();
+
+    if (!isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/indikator-mutabaah/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Indikator tidak dapat dihapus.");
+
+      toast.success(data.message || "Indikator berhasil dihapus.");
+      fetchAll();
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan saat menghapus indikator.");
+    }
   };
 
   // --- HANDLER KATEGORI ---
@@ -108,46 +132,62 @@ export default function MasterIndikatorPage() {
 
   const handleSimpanKategori = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    const url = editKategoriId
-      ? `${process.env.NEXT_PUBLIC_API_URL}/kategori-mutabaah/${editKategoriId}`
-      : `${process.env.NEXT_PUBLIC_API_URL}/kategori-mutabaah`;
+    try {
+      const token = localStorage.getItem("token");
+      const url = editKategoriId
+        ? `${process.env.NEXT_PUBLIC_API_URL}/kategori-mutabaah/${editKategoriId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/kategori-mutabaah`;
 
-    const res = await fetch(url, {
-      method: editKategoriId ? "PUT" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        nama_kategori: namaKategori,
-        urutan: Number(urutanKategori),
-      }),
-    });
+      const res = await fetch(url, {
+        method: editKategoriId ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          nama_kategori: namaKategori,
+          urutan: Number(urutanKategori),
+        }),
+      });
 
-    if (res.ok) {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal menyimpan kategori.");
+
+      toast.success(
+        data.message || (editKategoriId ? "Kategori berhasil diperbarui." : "Kategori berhasil ditambahkan.")
+      );
       resetFormKategori();
       fetchAll();
-    } else {
-      const err = await res.json();
-      alert(err.message || "Gagal menyimpan kategori");
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan saat menyimpan kategori.");
     }
   };
 
   const handleDeleteKategori = async (id: number) => {
-    if (!confirm("Hapus kategori ini?")) return;
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/kategori-mutabaah/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    const isConfirmed = await confirm({
+      title: "Hapus Kategori?",
+      message: "Yakin ingin menghapus kategori ini? Kategori yang masih digunakan oleh indikator tidak dapat dihapus.",
+      confirmText: "Ya, Hapus",
+      variant: "danger",
     });
 
-    if (res.ok) {
+    if (!isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/kategori-mutabaah/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Kategori tidak dapat dihapus.");
+
+      toast.success(data.message || "Kategori berhasil dihapus.");
       fetchAll();
-    } else {
-      const err = await res.json();
-      alert(err.message || "Kategori tidak dapat dihapus");
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan saat menghapus kategori.");
     }
   };
 

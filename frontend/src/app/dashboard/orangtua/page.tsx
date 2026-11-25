@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function DataGuruPage() {
+  const { toast, confirm } = useNotification();
   const [OrangTua, setOrangTua] = useState<any[]>([]);
   const [searchOrangTua, setSearchOrangTua] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,17 +35,28 @@ export default function DataGuruPage() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Yakin ingin menghapus data orang tua ini beserta akun loginnya?")) return;
+    const isConfirmed = await confirm({
+      title: "Hapus Data Orang Tua?",
+      message: "Yakin ingin menghapus data orang tua ini beserta akun loginnya? Data yang dihapus tidak dapat dikembalikan.",
+      confirmText: "Ya, Hapus",
+      variant: "danger",
+    });
+
+    if (!isConfirmed) return;
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orangtua/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) throw new Error("Gagal menghapus data");
+
+      if (!response.ok) throw new Error("Gagal menghapus data orang tua");
+
       setOrangTua(OrangTua.filter((item) => item.id !== id));
+      toast.success("Data orang tua beserta akun loginnya berhasil dihapus.");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || "Terjadi kesalahan saat menghapus data.");
     }
   };
 
