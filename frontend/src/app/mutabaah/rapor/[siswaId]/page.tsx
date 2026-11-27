@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useNotification } from "@/components/NotificationProvider";
+import KopSurat, { SchoolProfile } from "@/components/KopSurat";
 
 export default function RaporMutabaahPage() {
   const params = useParams();
   const router = useRouter();
   const siswaId = params.siswaId;
   const { toast } = useNotification();
+  const [schoolProfile, setSchoolProfile] = useState<SchoolProfile>({nama_sekolah: "Nama Sekolah",});
 
   const [bulan, setBulan] = useState("");
   const [rapor, setRapor] = useState<any>(null);
@@ -43,6 +45,17 @@ export default function RaporMutabaahPage() {
   useEffect(() => {
     if (siswaId) fetchRapor(bulan);
   }, [siswaId, bulan]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/school-profile`, {
+      headers: { Accept: "application/json" },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setSchoolProfile(data);
+      })
+      .catch(() => {});
+  }, []);
 
   if (isLoading) {
     return <div className="p-6 text-sm text-slate-500">Menyiapkan lembar rapor santri...</div>;
@@ -103,19 +116,8 @@ export default function RaporMutabaahPage() {
 
       {/* Lembar Kertas Rapor A4 */}
       <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm print:max-w-none print:rounded-none print:border-none print:p-0 print:shadow-none">
-        {/* Kop Surat */}
-        <div className="border-b-2 border-slate-800 pb-4 text-center">
-          <h1 className="text-xl font-bold uppercase tracking-wide text-slate-900">
-            {rapor.sekolah.nama_sekolah}
-          </h1>
-          <p className="mt-1 text-sm font-semibold text-slate-700">
-            LAPORAN EVALUASI MUTABA&apos;AH YAUMIYAH SANTRI
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">
-            Tahun Ajaran {rapor.periode.tahun_ajaran} &bull; Semester {rapor.periode.semester} (
-            {rapor.periode.filter_bulan})
-          </p>
-        </div>
+        {/* KOP Surat Resmi Otomatis dari Pengaturan */}
+        <KopSurat profile={schoolProfile} />
 
         {/* Identitas Santri */}
         <div className="mt-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 text-sm sm:grid-cols-2 print:bg-transparent">

@@ -1,12 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { SchoolProfile } from "@/components/KopSurat";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [schoolProfile, setSchoolProfile] = useState<SchoolProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/school-profile`, {
+      headers: { Accept: "application/json" },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setSchoolProfile(data);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +31,7 @@ export default function LoginPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
@@ -29,7 +42,6 @@ export default function LoginPage() {
         throw new Error(data.message || "Gagal melakukan login.");
       }
 
-      // Simpan token dan data user ke localStorage (untuk sementara)
       localStorage.setItem("token", data.access_token);
       const params = new URLSearchParams(window.location.search);
       const redirectTarget = params.get("redirect") || "/dashboard";
@@ -44,6 +56,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#f7f8f4] text-slate-900">
       <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
+        {/* PANEL KIRI: BRANDING SEKOLAH */}
         <section className="relative isolate flex min-h-[360px] flex-col overflow-hidden bg-[#123b32] px-7 py-8 text-white sm:px-12 sm:py-10 lg:min-h-screen lg:px-16 lg:py-12">
           <div
             aria-hidden="true"
@@ -58,47 +71,61 @@ export default function LoginPage() {
             className="absolute -right-20 top-32 -z-10 h-72 w-72 rounded-full border border-white/10"
           />
 
+          {/* Header Logo & Identitas Sekolah */}
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg shadow-black/10 backdrop-blur">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 48 48"
-                fill="none"
-                className="h-9 w-9"
-              >
-                <path
-                  d="M8 21.5 24 11l16 10.5v17H8v-17Z"
-                  stroke="#E8D6A9"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
+            {schoolProfile?.logo_sekolah_url ? (
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-2 shadow-lg shadow-black/20 ring-1 ring-[#e8d6a9]/40 sm:h-16 sm:w-16">
+                <img
+                  src={schoolProfile.logo_sekolah_url}
+                  alt={schoolProfile.nama_sekolah || "Logo Sekolah"}
+                  className="h-full w-full object-contain"
                 />
-                <path
-                  d="M17 38.5V27h14v11.5M21 27v-5h6v5M24 7v4M21.5 7h5"
-                  stroke="#E8D6A9"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M15 32h2m14 0h2"
-                  stroke="#E8D6A9"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-semibold tracking-[0.16em] text-[#e8d6a9]">
-                PORTAL TERPADU
+              </div>
+            ) : (
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg shadow-black/10 backdrop-blur">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  className="h-9 w-9"
+                >
+                  <path
+                    d="M8 21.5 24 11l16 10.5v17H8v-17Z"
+                    stroke="#E8D6A9"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M17 38.5V27h14v11.5M21 27v-5h6v5M24 7v4M21.5 7h5"
+                    stroke="#E8D6A9"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M15 32h2m14 0h2"
+                    stroke="#E8D6A9"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            )}
+
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#e8d6a9] sm:text-sm">
+                {schoolProfile?.nama_sekolah || "PORTAL TERPADU"}
               </p>
-              <p className="mt-1 text-xs text-white/65">Islamic Boarding School</p>
+              <p className="mt-1 truncate text-xs text-white/70">
+                {schoolProfile?.nama_yayasan || "Islamic Boarding School"}
+              </p>
             </div>
           </div>
 
           <div className="my-auto max-w-xl py-12 lg:py-20">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#e8d6a9]/30 bg-white/5 px-3.5 py-1.5 text-xs font-medium tracking-wide text-[#f0dfb6]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#e8d6a9]" />
-              PORTAL AKADEMIK & KESANTRIAN
+              PORTAL AKADEMIK &amp; KESANTRIAN
             </p>
             <h1 className="max-w-lg text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
               Tumbuh dalam ilmu,{" "}
@@ -133,15 +160,26 @@ export default function LoginPage() {
           </p>
         </section>
 
+        {/* PANEL KANAN: FORM LOGIN */}
         <section className="flex items-center justify-center px-6 py-12 sm:px-10 lg:px-14">
           <div className="w-full max-w-md">
-            <div className="mb-10 lg:hidden">
-              <p className="text-xs font-semibold tracking-[0.16em] text-emerald-800">
-                PORTAL TERPADU
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                Islamic Boarding School
-              </p>
+            {/* Header Ringkas Tampilan Mobile */}
+            <div className="mb-8 flex items-center gap-3 lg:hidden">
+              {schoolProfile?.logo_sekolah_url && (
+                <img
+                  src={schoolProfile.logo_sekolah_url}
+                  alt="Logo Sekolah"
+                  className="h-10 w-10 shrink-0 object-contain"
+                />
+              )}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-800">
+                  {schoolProfile?.nama_sekolah || "PORTAL TERPADU"}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {schoolProfile?.nama_yayasan || "Islamic Boarding School"}
+                </p>
+              </div>
             </div>
 
             <div className="mb-9">
@@ -217,7 +255,8 @@ export default function LoginPage() {
               Gunakan akun yang telah diberikan oleh administrator sekolah.
             </p>
             <p className="mt-12 text-center text-xs text-slate-400">
-              © 2026 Portal SSO Sekolah Boarding
+              © {new Date().getFullYear()}{" "}
+              {schoolProfile?.nama_sekolah || "Portal SSO Sekolah Boarding"}
             </p>
           </div>
         </section>

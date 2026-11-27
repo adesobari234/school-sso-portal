@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\BackupController;
 
 // Endpoint publik
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/public/school-profile', [SettingController::class, 'publicProfile']);
 
 // Endpoint terproteksi Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -38,9 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
+    
     Route::get('/settings', [SettingController::class, 'index']);
     Route::post('/settings', [SettingController::class, 'updateSettings']);
     Route::post('/settings/users/{id}/reset-password', [SettingController::class, 'resetUserPassword']);
+    Route::post('/settings/school-profile', [SettingController::class, 'updateSchoolProfile']);
 
     Route::get('/kelas', [KelasController::class, 'index']);
     Route::post('/kelas', [KelasController::class, 'store']);

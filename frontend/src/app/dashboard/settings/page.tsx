@@ -5,16 +5,17 @@ import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import { useNotification } from "@/components/NotificationProvider";
 import BackupDatabaseTab from "@/components/settings/BackupDatabaseTab";
+import ProfilSekolahTab from "@/components/settings/ProfilSekolahTab";
+
 
 export default function PengaturanPortalPage() {
   const { toast } = useNotification();
-  const [activeTab, setActiveTab] = useState<"umum" | "akun" | "backup">("umum");
+  const [activeTab, setActiveTab] = useState<"umum" | "profil" | "akun" | "backup">("umum");
   const [isLoading, setIsLoading] = useState(true);
   const [isForbidden, setIsForbidden] = useState(false);
 
-  // State Konfigurasi Umum
+  // State Konfigurasi Periode Akademik
   const [settings, setSettings] = useState({
-    nama_sekolah: "",
     tahun_ajaran: "",
     semester_aktif: "ganjil",
   });
@@ -48,7 +49,10 @@ export default function PengaturanPortalPage() {
         if (!res.ok) throw new Error("Gagal memuat pengaturan");
 
         const data = await res.json();
-        setSettings(data.settings);
+        setSettings({
+          tahun_ajaran: data.settings?.tahun_ajaran || "",
+          semester_aktif: data.settings?.semester_aktif || "ganjil",
+        });
         setUsers(data.users || []);
       } catch (err) {
         console.error(err);
@@ -79,7 +83,7 @@ export default function PengaturanPortalPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal menyimpan pengaturan");
 
-      toast.success(data.message || "Pengaturan berhasil disimpan.");
+      toast.success(data.message || "Periode akademik berhasil disimpan.");
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan saat menyimpan pengaturan.");
     } finally {
@@ -152,67 +156,64 @@ export default function PengaturanPortalPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Pengaturan Portal SSO</h1>
         <p className="text-sm text-slate-500">
-          Kelola identitas instansi, periode tahun ajaran aktif, dan reset kata sandi akun pengguna.
+          Kelola periode tahun ajaran, profil &amp; KOP sekolah, reset kata sandi akun, dan backup database.
         </p>
       </div>
 
       {/* Tab Navigasi */}
-      <div className="flex gap-2 border-b border-slate-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         <button
           type="button"
           onClick={() => setActiveTab("umum")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === "umum"
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+            activeTab === "umum"
               ? "bg-blue-600 text-white"
               : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
+          }`}
         >
-          Konfigurasi Portal &amp; Akademik
+          Periode Akademik
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("profil")}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+            activeTab === "profil"
+              ? "bg-blue-600 text-white"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          Profil &amp; KOP Sekolah
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("akun")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === "akun"
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+            activeTab === "akun"
               ? "bg-blue-600 text-white"
               : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
+          }`}
         >
           Manajemen Akun &amp; Reset Password
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("backup")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === "backup"
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+            activeTab === "backup"
               ? "bg-blue-600 text-white"
               : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
+          }`}
         >
           Backup Database
         </button>
       </div>
 
-      {/* TAB 1: KONFIGURASI PORTAL & PERIODE AKADEMIK */}
+      {/* TAB 1: PERIODE AKADEMIK */}
       {activeTab === "umum" && (
         <form
           onSubmit={handleSaveSettings}
           className="max-w-2xl space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
         >
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Nama Sekolah / Pesantren
-            </label>
-            <input
-              type="text"
-              required
-              value={settings.nama_sekolah}
-              onChange={(e) => setSettings({ ...settings, nama_sekolah: e.target.value })}
-              placeholder="Contoh: Sekolah & Pesantren Terpadu"
-              className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            />
-            <p className="mt-1 text-xs text-slate-400">
-              Digunakan sebagai Kop Surat pada cetakan rapor dan laporan resmi.
-            </p>
-          </div>
-
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-slate-700">
@@ -253,13 +254,16 @@ export default function PengaturanPortalPage() {
               disabled={isSavingSettings}
               className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
-              {isSavingSettings ? "Menyimpan..." : "Simpan Pengaturan"}
+              {isSavingSettings ? "Menyimpan..." : "Simpan Periode Akademik"}
             </button>
           </div>
         </form>
       )}
 
-      {/* TAB 2: MANAJEMEN AKUN & RESET PASSWORD */}
+      {/* TAB 2: PROFIL & KOP SEKOLAH */}
+      {activeTab === "profil" && <ProfilSekolahTab />}
+
+      {/* TAB 3: MANAJEMEN AKUN & RESET PASSWORD */}
       {activeTab === "akun" && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
@@ -299,7 +303,9 @@ export default function PengaturanPortalPage() {
                       paginatedUsers.map((u) => (
                         <tr
                           key={u.id}
-                          className={`hover:bg-slate-50 ${resetTarget?.id === u.id ? "bg-blue-50/60" : ""}`}
+                          className={`hover:bg-slate-50 ${
+                            resetTarget?.id === u.id ? "bg-blue-50/60" : ""
+                          }`}
                         >
                           <td className="px-5 py-3 font-medium text-slate-800">{u.name}</td>
                           <td className="px-5 py-3 text-slate-500">{u.email}</td>
@@ -393,6 +399,8 @@ export default function PengaturanPortalPage() {
           </div>
         </div>
       )}
+
+      {/* TAB 4: BACKUP DATABASE */}
       {activeTab === "backup" && <BackupDatabaseTab />}
     </div>
   );
